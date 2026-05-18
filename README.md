@@ -25,13 +25,20 @@ Widget Livewire completo para verificación KYC con [Sumsub](https://sumsub.com)
 composer require anselmi-dev/livewire-sumsub
 ```
 
-Composer instala también `anselmi-dev/sumsub` en `vendor/` como dependencia transitiva.
+Composer instala también `anselmi-dev/sumsub` (^1.0) en `vendor/` como dependencia transitiva.
 
 **No hace falta** publicar `config/sumsub.php` ni duplicar credenciales: todo va en `config/livewire-sumsub.php` (sección `sumsub`) y en las variables `.env` de abajo.
 
-> Si tu proyecto usa `"minimum-stability": "stable"` y Composer no resuelve la dependencia transitiva, ejecuta solo:
-> `composer require anselmi-dev/livewire-sumsub:@dev`
-> o añade temporalmente `"minimum-stability": "dev"` con `"prefer-stable": true`.
+Instalación desde GitHub (si aún no está en Packagist):
+
+```json
+"repositories": [
+    {
+        "type": "vcs",
+        "url": "https://github.com/anselmi-dev/livewire-sumsub"
+    }
+]
+```
 
 Path repository (desarrollo local):
 

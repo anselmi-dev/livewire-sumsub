@@ -43,6 +43,9 @@
             "providers": [
                 "AnselmiDev\\LivewireSumsub\\LivewireSumsubServiceProvider"
             ]
+        },
+        "branch-alias": {
+            "dev-main": "1.x-dev"
         }
     },
     "config": {
