@@ -1,172 +1,158 @@
 # anselmi-dev/livewire-sumsub
 
-Widget Livewire completo para verificación KYC con [Sumsub](https://sumsub.com).
+Complete Livewire widget for KYC verification with [Sumsub](https://sumsub.com).
 
-**Solo necesitas instalar este paquete.** Incluye automáticamente [`anselmi-dev/sumsub`](https://github.com/anselmi-dev/sumsub) (API, webhooks, base de datos) y sincroniza las credenciales desde un único archivo de configuración.
+**You only need to install this package.** It automatically includes [`anselmi-dev/sumsub`](https://github.com/anselmi-dev/sumsub) (API, webhooks, database) and syncs credentials from a single configuration file.
 
 ---
 
-## Requisitos
+## Requirements
 
-| Paquete | Versión |
+| Package | Version |
 |---|---|
 | PHP | ^8.3 |
 | Laravel | ^11 \| ^12 \| ^13 |
 | livewire/livewire | ^3.5 \| ^4 |
-| livewire/flux | ^2 *(vistas por defecto)* |
+| livewire/flux | ^2 *(default views)* |
 
 ---
 
-## Instalación (un solo paquete)
+## Installation (single package)
 
 ### 1. Composer
 
 ```bash
-composer require anselmi-dev/livewire-sumsub
+composer require anselmi-dev/livewire-sumsub:^1.0
 ```
 
-Composer instala también `anselmi-dev/sumsub` (^1.0) en `vendor/` como dependencia transitiva.
-
-**No hace falta** publicar `config/sumsub.php` ni duplicar credenciales: todo va en `config/livewire-sumsub.php` (sección `sumsub`) y en las variables `.env` de abajo.
-
-Instalación desde GitHub (si aún no está en Packagist):
-
-```json
-"repositories": [
-    {
-        "type": "vcs",
-        "url": "https://github.com/anselmi-dev/livewire-sumsub"
-    }
-]
-```
-
-Path repository (desarrollo local):
-
-```json
-"repositories": [
-    {
-        "type": "path",
-        "url": "../packages/anselmi-dev/livewire-sumsub",
-        "options": { "symlink": true }
-    }
-]
-```
-
-### 2. Configuración y credenciales Sumsub
+### 2. Configuration and Sumsub credentials
 
 ```bash
 php artisan livewire-sumsub:install
 ```
 
-Publica `config/livewire-sumsub.php` y muestra las variables `.env` necesarias.
+Publishes `config/livewire-sumsub.php` and shows the required `.env` variables.
 
-Añade a tu `.env`:
+Add to your `.env`:
 
 ```env
-# Credenciales Sumsub (panel → Developer Tools → App Tokens)
-SUMSUB_APP_TOKEN=tu-app-token
-SUMSUB_SECRET_KEY=tu-secret-key
+# Sumsub credentials (dashboard → Developer Tools → App Tokens)
+SUMSUB_APP_TOKEN=your-app-token
+SUMSUB_SECRET_KEY=your-secret-key
 SUMSUB_BASE_URL=https://api.sumsub.com
-SUMSUB_WEBHOOK_SECRET=tu-webhook-secret
+SUMSUB_WEBHOOK_SECRET=your-webhook-secret
 SUMSUB_DEFAULT_LEVEL=basic-kyc-level
 
-# Webhook (ruta registrada automáticamente por anselmi-dev/sumsub)
+# Webhook (route registered automatically by anselmi-dev/sumsub)
 SUMSUB_WEBHOOK_ROUTE=webhooks/sumsub
 ```
 
-Los webhooks se encolan con la conexión y cola por defecto de tu app (`config/queue.php`). Para usar otra cola, configura el job en tu proyecto (p. ej. `$job->onQueue('sumsub')` en un listener o override del controlador publicado).
+Webhooks are queued using your app's default queue connection (`config/queue.php`). To use a different queue, configure the job in your project (e.g. `$job->onQueue('sumsub')` in a listener or published controller override).
 
-No necesitas publicar `config/sumsub.php`: al arrancar la app, este paquete copia la sección `sumsub` de `livewire-sumsub.php` hacia la config que usa el paquete base.
+You do not need to publish `config/sumsub.php`: on boot, this package copies the `sumsub` section from `livewire-sumsub.php` into the config used by the base package.
 
-### 3. Base de datos
+### 3. Database
 
 ```bash
 php artisan migrate
 ```
 
-La migración `sumsub_applicants` la aporta `anselmi-dev/sumsub` (carga automática).
+The `sumsub_applicants` migration is provided by `anselmi-dev/sumsub` (auto-loaded).
 
-### 4. Vista en tu app
+### 4. View in your app
 
 ```blade
-{{-- El layout debe incluir @stack('scripts') --}}
+{{-- Layout must include @stack('scripts') --}}
 <livewire:livewire-sumsub.kyc-verification />
+```
+
+SaaS / multi-tenant:
+
+```blade
+<livewire:livewire-sumsub.kyc-verification :tenant-id="$tenant->id" />
 ```
 
 ---
 
-## Qué incluye cada capa
+## What each layer includes
 
-| Capa | Paquete | Responsabilidad |
+| Layer | Package | Responsibility |
 |---|---|---|
-| API Sumsub, webhooks, BD | `anselmi-dev/sumsub` *(dependencia)* | Cliente HTTP, `SumsubService`, eventos |
-| Widget Livewire + UI | `anselmi-dev/livewire-sumsub` | Componente, Blade, Alpine, SDK |
+| Sumsub API, webhooks, DB | `anselmi-dev/sumsub` *(dependency)* | HTTP client, `SumsubService`, events |
+| Livewire widget + UI | `anselmi-dev/livewire-sumsub` | Component, Blade, Alpine, SDK |
 
 ---
 
-## Personalizar vistas
+## Customize views
 
 ```bash
 php artisan vendor:publish --tag=livewire-sumsub-views
 php artisan vendor:publish --tag=livewire-sumsub-translations
 ```
 
-Componentes por estado: `x-livewire-sumsub::state-idle`, `state-loading`, `state-sdk-ready`, etc.
+Per-state components: `x-livewire-sumsub::state-idle`, `state-loading`, `state-sdk-ready`, etc.
 
 ---
 
-## Webhooks y CSRF
+## Webhooks and CSRF
 
-Sumsub enviará POST a `/webhooks/sumsub` (configurable con `SUMSUB_WEBHOOK_ROUTE`).
+Sumsub will send POST requests to `/webhooks/sumsub` (configurable via `SUMSUB_WEBHOOK_ROUTE`).
 
-Excluye la ruta del middleware CSRF si aplica.
+Exclude the route from CSRF middleware if applicable:
 
-Asegúrate de tener un worker de colas activo (`php artisan queue:work`): el job `ProcessSumsubWebhook` se encola y **desde ahí** se disparan los eventos.
+```php
+// bootstrap/app.php
+$middleware->validateCsrfTokens(except: [
+    'webhooks/sumsub',
+]);
+```
+
+Make sure a queue worker is running (`php artisan queue:work`): the `ProcessSumsubWebhook` job is queued and **events are dispatched from there**.
 
 ---
 
-## Eventos: aplicar tu propia lógica de negocio
+## Events: apply your own business logic
 
-El widget Livewire solo cubre la UI. Cuando Sumsub notifica cambios por webhook, el paquete base (`anselmi-dev/sumsub`) actualiza `sumsub_applicants` y dispara eventos Laravel para que **tu aplicación** reaccione.
+The Livewire widget only covers the UI. When Sumsub notifies changes via webhook, the base package (`anselmi-dev/sumsub`) updates `sumsub_applicants` and dispatches Laravel events so **your application** can react.
 
-### Flujo
+### Flow
 
 ```
 Sumsub → POST /webhooks/sumsub
-      → ProcessSumsubWebhook (cola)
-      → actualiza SumsubApplicant
-      → ApplicantStatusChanged (siempre)
-      → ApplicantReviewed (solo si hay reviewAnswer en el payload)
+      → ProcessSumsubWebhook (queue)
+      → updates SumsubApplicant
+      → ApplicantStatusChanged (always)
+      → ApplicantReviewed (only when reviewAnswer is in the payload)
 ```
 
-### Eventos disponibles
+### Available events
 
-| Evento | Namespace | Cuándo se dispara | Uso típico en tu app |
+| Event | Namespace | When it fires | Typical use in your app |
 |---|---|---|---|
-| `ApplicantCreated` | `AnselmiDev\Sumsub\Events\ApplicantCreated` | Al crear un applicant en Sumsub vía `SumsubService::createApplicant()` | Inicializar estado KYC del usuario, logs, CRM |
-| `ApplicantStatusChanged` | `AnselmiDev\Sumsub\Events\ApplicantStatusChanged` | Tras **cada** webhook que actualiza el registro | Sincronizar estado intermedio (`pending`, `queued`, etc.) |
-| `ApplicantReviewed` | `AnselmiDev\Sumsub\Events\ApplicantReviewed` | Cuando el webhook trae `reviewResult.reviewAnswer` (`GREEN`, `RED`, `RETRY`) | Aprobar/rechazar usuario, emails, desbloquear inversión |
+| `ApplicantCreated` | `AnselmiDev\Sumsub\Events\ApplicantCreated` | When creating an applicant via `SumsubService::createApplicant()` | Initialize user KYC state, logs, CRM |
+| `ApplicantStatusChanged` | `AnselmiDev\Sumsub\Events\ApplicantStatusChanged` | After **every** webhook that updates the record | Sync intermediate state (`pending`, `queued`, etc.) |
+| `ApplicantReviewed` | `AnselmiDev\Sumsub\Events\ApplicantReviewed` | When the webhook includes `reviewResult.reviewAnswer` (`GREEN`, `RED`, `RETRY`) | Approve/reject user, emails, unlock investing |
 
-Propiedades comunes:
+Common properties:
 
 ```php
-$event->applicant;        // Modelo SumsubApplicant (user_id, review_status, review_answer, …)
-$event->webhookPayload;  // array con el JSON crudo del webhook (ApplicantStatusChanged y ApplicantReviewed)
+$event->applicant;        // SumsubApplicant model (user_id, review_status, review_answer, …)
+$event->webhookPayload;  // raw webhook JSON array (ApplicantStatusChanged and ApplicantReviewed)
 
-// Solo en ApplicantReviewed:
+// ApplicantReviewed only:
 $event->reviewAnswer;    // 'GREEN' | 'RED' | 'RETRY'
 $event->isApproved();
 $event->isRejected();
 $event->needsRetry();
 ```
 
-Relación con el usuario de tu app:
+Relation to your app user:
 
 ```php
-$user = $event->applicant->user; // BelongsTo según auth.providers.users.model
+$user = $event->applicant->user; // BelongsTo per auth.providers.users.model
 ```
 
-### Opción 1: listener en `AppServiceProvider`
+### Option 1: listener in `AppServiceProvider`
 
 ```php
 // app/Providers/AppServiceProvider.php
@@ -178,7 +164,6 @@ use Illuminate\Support\Facades\Event;
 public function boot(): void
 {
     Event::listen(ApplicantStatusChanged::class, function (ApplicantStatusChanged $event): void {
-        // Ej.: guardar último estado en tu tabla users o kyc_profiles
         $event->applicant->user?->update([
             'kyc_review_status' => $event->applicant->review_status,
         ]);
@@ -193,24 +178,22 @@ public function boot(): void
 
         if ($event->isApproved()) {
             $user->update(['kyc_verified_at' => now()]);
-            // Mail::to($user)->send(new KycApprovedMail($user));
             return;
         }
 
         if ($event->isRejected()) {
             $user->update(['kyc_verified_at' => null]);
-            // notificar rechazo
             return;
         }
 
         if ($event->needsRetry()) {
-            // el usuario debe volver a iniciar el flujo en el widget
+            // user must restart the flow in the widget
         }
     });
 }
 ```
 
-### Opción 2: clase listener dedicada (recomendado)
+### Option 2: dedicated listener class (recommended)
 
 ```bash
 php artisan make:listener SyncUserKycOnApplicantReviewed --event="AnselmiDev\Sumsub\Events\ApplicantReviewed"
@@ -247,7 +230,7 @@ class SyncUserKycOnApplicantReviewed implements ShouldQueue
 }
 ```
 
-Regístralo en `app/Providers/AppServiceProvider.php` o en `bootstrap/app.php` (Laravel 11+):
+Register it in `AppServiceProvider` or `bootstrap/app.php` (Laravel 11+):
 
 ```php
 use AnselmiDev\Sumsub\Events\ApplicantReviewed;
@@ -257,34 +240,34 @@ use Illuminate\Support\Facades\Event;
 Event::listen(ApplicantReviewed::class, SyncUserKycOnApplicantReviewed::class);
 ```
 
-Si el listener implementa `ShouldQueue`, se encolará **después** del job del webhook, usando la cola por defecto de tu proyecto (`config/queue.php`).
+If the listener implements `ShouldQueue`, it will be queued **after** the webhook job, using your project's default queue (`config/queue.php`).
 
-### Opción 3: descubrimiento automático de listeners
+### Option 3: automatic listener discovery
 
-Coloca listeners en `app/Listeners` y deja activo el descubrimiento de eventos de Laravel; implementa `handle(ApplicantReviewed $event)` en una clase cuyo nombre siga la convención de tu app.
+Place listeners in `app/Listeners` with Laravel's event discovery enabled; implement `handle(ApplicantReviewed $event)` following your app's naming conventions.
 
-### Qué evento elegir
+### Which event to choose
 
-| Necesitas… | Escucha |
+| You need to… | Listen to |
 |---|---|
-| Reaccionar solo al resultado final (aprobado / rechazado / reintentar) | `ApplicantReviewed` |
-| Cada cambio de estado del applicant (incl. `pending`, `onHold`, etc.) | `ApplicantStatusChanged` |
-| Saber cuándo se creó el applicant por primera vez | `ApplicantCreated` |
+| React only to the final result (approved / rejected / retry) | `ApplicantReviewed` |
+| Every applicant status change (including `pending`, `onHold`, etc.) | `ApplicantStatusChanged` |
+| Know when the applicant was first created | `ApplicantCreated` |
 
-`ApplicantReviewed` es el más habitual para reglas de negocio (habilitar inversión, marcar `kyc_verified_at`, enviar emails).
+`ApplicantReviewed` is the most common for business rules (enable investing, set `kyc_verified_at`, send emails).
 
-### Probar en local
+### Test locally
 
 ```bash
-# Simula un webhook GREEN (paquete sumsub, solo entornos no productivos)
+# Simulate a GREEN webhook (sumsub package, non-production only)
 php artisan sumsub:simulate-webhook --answer=GREEN --sync
 ```
 
-Con `--sync` el job corre al instante y tus listeners deberían ejecutarse igual que en producción (salvo que el listener también esté en cola: entonces necesitas `queue:work`).
+With `--sync` the job runs immediately and your listeners should behave like in production (unless the listener is also queued — then you need `queue:work`).
 
 ---
 
-## Extender el componente Livewire
+## Extend the Livewire component
 
 ```php
 namespace App\Livewire\Kyc;
@@ -296,12 +279,6 @@ class KycVerification extends BaseKycVerification {}
 
 ---
 
-## Arquitectura
-
-Ver [ARCHITECTURE.md](./ARCHITECTURE.md).
-
----
-
-## Licencia
+## License
 
 MIT
