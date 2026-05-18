@@ -1,0 +1,51 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "anselmi-dev/livewire-sumsub",
+    "description": "Livewire KYC verification widget for Sumsub (Tailwind, Alpine, optional Flux UI)",
+    "type": "library",
+    "keywords": ["laravel", "livewire", "kyc", "sumsub", "identity-verification"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "AnselmiDev",
+            "email": "anselmi.dev@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "anselmi-dev/sumsub": "^1.0",
+        "illuminate/support": "^11.0|^12.0|^13.0",
+        "illuminate/view": "^11.0|^12.0|^13.0",
+        "livewire/livewire": "^3.5|^4.0",
+        "spatie/laravel-package-tools": "^1.16"
+    },
+    "require-dev": {
+        "livewire/flux": "^2.0",
+        "orchestra/testbench": "^9.0|^10.0",
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-laravel": "^3.0"
+    },
+    "suggest": {
+        "livewire/flux": "Required for the default Blade components (icons and buttons)."
+    },
+    "autoload": {
+        "psr-4": {
+            "AnselmiDev\\LivewireSumsub\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AnselmiDev\\LivewireSumsub\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "AnselmiDev\\LivewireSumsub\\LivewireSumsubServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
